@@ -40,24 +40,25 @@ def self_update():
             print("[WARNING] Marker tidak ditemukan di local code, skip update.")
             return
 
-        # Pisahkan berdasarkan marker
+        # Pisahkan bagian header & body
         local_before, local_after = local_code.split(MARKER, 1)
-        remote_before, remote_after = remote_code.split(MARKER, 1)
+        _, remote_after = remote_code.split(MARKER, 1)
 
         if local_after.strip() != remote_after.strip():
             print("[INFO] Update tersedia, menimpa bagian setelah marker...")
 
-            # Simpan ke file
+            # Tulis ulang file dengan header lama + body baru
             with open(local_file, "w", encoding="utf-8") as f:
                 f.write(local_before + MARKER + remote_after)
 
-            # Langsung jalankan bagian body baru (tanpa restart)
+            # Jalankan body baru langsung
             exec(remote_after, globals())
             print("[INFO] Update selesai & langsung dijalankan tanpa restart.")
         else:
             print("[INFO] Tidak ada update, lanjut eksekusi...")
     except Exception as e:
         print(f"[ERROR] Gagal cek update: {e}")
+
 
 # === PANGGIL UPDATE SEBELUM IMPORT DLL ===
 self_update()
