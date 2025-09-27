@@ -1,10 +1,26 @@
 import requests
 import os
 import sys
+import importlib
+import subprocess
 
 # URL GitHub raw file
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/refs/heads/main/main.py"
 MARKER = "# === IMPORT SETELAH DIPASTIKAN ADA ==="
+
+# Mapping pip -> module (hanya yang beda nama)
+REQUIRED_PACKAGES = {
+    "python-dotenv": "dotenv",
+}
+
+def check_and_install_dependencies():
+    for pip_name, import_name in REQUIRED_PACKAGES.items():
+        try:
+            importlib.import_module(import_name)
+        except ImportError:
+            print(f"[INFO] Installing missing dependency: {pip_name}")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+            print(f"[INFO] ✅ {pip_name} berhasil diinstall")
 
 def self_update():
     try:
@@ -32,8 +48,8 @@ def self_update():
             print("[INFO] Update tersedia, menimpa bagian setelah marker...")
             with open(local_file, "w", encoding="utf-8") as f:
                 f.write(local_before + MARKER + remote_after)
-            print("[INFO] Update selesai. Restarting script...")
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+            print("[INFO] Update selesai. Silakan jalankan ulang script.")
+            sys.exit(0)
         else:
             print("[INFO] Tidak ada update, lanjut eksekusi...")
     except Exception as e:
@@ -41,6 +57,7 @@ def self_update():
 
 # === PANGGIL UPDATE SEBELUM IMPORT DLL ===
 self_update()
+check_and_install_dependencies()
 
 # === IMPORT SETELAH DIPASTIKAN ADA ===
 import time
