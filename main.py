@@ -3,7 +3,7 @@ import os
 import sys
 
 # URL GitHub raw file
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/user/repo/branch/hen-2.py"
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/refs/heads/main/main.py"
 MARKER = "# === IMPORT SETELAH DIPASTIKAN ADA ==="
 
 def self_update():
