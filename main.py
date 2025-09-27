@@ -1,3 +1,4 @@
+# === IMPORT SETELAH DIPASTIKAN ADA ===
 import time
 import logging
 import jaydebeapi
