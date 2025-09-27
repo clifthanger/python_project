@@ -1,0 +1,5 @@
+JayDeBeApi
+gspread
+python-dotenv
+oauth2client
+tqdm
