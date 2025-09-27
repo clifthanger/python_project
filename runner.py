@@ -1,4 +1,6 @@
 # === IMPORT SETELAH DIPASTIKAN ADA ===
+import os
+import sys
 import time
 import logging
 import jaydebeapi
@@ -8,6 +10,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from getpass import getpass
 import requests
 from tqdm import tqdm
+
 # === CONFIG PATH ===
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_PATH = os.path.join(CURRENT_DIR, ".env")
