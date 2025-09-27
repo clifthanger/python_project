@@ -81,7 +81,7 @@ def display_intro():
  ░       ▒   ▒▒ ░  ░▒ ░ ▒░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░ ▒ ░░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░░   ░ ▒░
  ░ ░     ░   ▒     ░░   ░  ░  ░░ ░░ ░ ░ ▒    ░░   ░  ▒ ░░ ░ ░ ░ ░░ ░ ░ ▒     ░   ░ ░ 
              ░  ░   ░      ░  ░  ░    ░ ░     ░      ░    ░ ░        ░ ░           ░ 
-                                                        ░                      V.1.2
+                                                        ░                      V.1.2.1a
 """
     print(logo)
     time.sleep(3)
@@ -286,7 +286,7 @@ def main():
     curs.close()
     conn.close()
     clear_screen()
-    logging.info(f"✅ Selesai menambahkan {len(rows)} baris ke {spreadsheet_name} pada sheet {sheet_name}, dari cell {start_cell}")
+    logging.info(f"✅ Selesai menambahkan {len(rows)} baris ke {spreadsheet_name} pada sheet {sheet_name}, dimulai dari cell {start_cell}")
 
 if __name__ == "__main__":
     main()
