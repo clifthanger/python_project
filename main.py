@@ -8,7 +8,7 @@ import subprocess
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/refs/heads/main/main.py?nocache=123"
 MARKER = "# === IMPORT SETELAH DIPASTIKAN ADA ==="
 
-# Mapping pip -> module (hanya yang beda nama aja)
+# Mapping pip -> module (hanya yang beda nama)
 REQUIRED_PACKAGES = {
     "python-dotenv": "dotenv",
 }
