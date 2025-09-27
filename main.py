@@ -4,8 +4,8 @@ import sys
 import importlib
 import subprocess
 
-# URL GitHub raw files
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/refs/heads/main/main.py"
+# URL GitHub raw file
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/refs/heads/main/main.py?nocache=123"
 MARKER = "# === IMPORT SETELAH DIPASTIKAN ADA ==="
 
 # Mapping pip -> module (hanya yang beda nama aja)
@@ -46,10 +46,14 @@ def self_update():
 
         if local_after.strip() != remote_after.strip():
             print("[INFO] Update tersedia, menimpa bagian setelah marker...")
+
+            # Simpan ke file
             with open(local_file, "w", encoding="utf-8") as f:
                 f.write(local_before + MARKER + remote_after)
-            print("[INFO] Update selesai. Silakan jalankan ulang script.")
-            sys.exit(0)
+
+            # Langsung jalankan bagian body baru (tanpa restart)
+            exec(remote_after, globals())
+            print("[INFO] Update selesai & langsung dijalankan tanpa restart.")
         else:
             print("[INFO] Tidak ada update, lanjut eksekusi...")
     except Exception as e:
