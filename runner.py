@@ -11,6 +11,7 @@ from getpass import getpass
 import requests
 from tqdm import tqdm
 import subprocess
+import openpyxl
 
 # === CONFIG PATH ===
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +42,7 @@ def display_intro():
  ░       ▒   ▒▒ ░  ░▒ ░ ▒░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░ ▒ ░░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░░   ░ ▒░
  ░ ░     ░   ▒     ░░   ░  ░  ░░ ░░ ░ ░ ▒    ░░   ░  ▒ ░░ ░ ░ ░ ░░ ░ ░ ▒     ░   ░ ░ 
              ░  ░   ░      ░  ░  ░    ░ ░     ░      ░    ░ ░        ░ ░           ░ 
-                                                        ░                      V.1.3
+                                                        ░                    V.1.3.1
 """
     print(logo)
     time.sleep(3)
@@ -95,6 +96,25 @@ def pick_file(extension, download_url=None, save_as=None):
     choice = int(input("Pilih nomor file: ")) - 1
     clear_screen()
     return os.path.join(CURRENT_DIR, files[choice])
+
+def output_menu():
+    while True:
+        print("\nPilih output data:")
+        print("1. Upload ke Google Sheets")
+        print("2. Simpan ke Excel (.xlsx)")
+        choice = input("Pilihan (1/2): ").strip()
+        if choice in ("1", "2"):
+            return choice
+        print("[WARN] Pilihan tidak valid, coba lagi.\n")
+
+def save_to_excel(columns, rows, filename):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(columns)
+    for r in rows:
+        ws.append(r)
+    wb.save(filename)
+    logging.info(f"✅ Data berhasil disimpan ke file Excel: {filename}")
 
 def pick_sql_file():
     files = [f for f in os.listdir(CURRENT_DIR) if f.endswith(".sql")]
@@ -250,19 +270,43 @@ def get_or_configure_sheet(client):
 # === MAIN EXECUTION ===
 def main():
     display_intro()
-    client = get_google_sheets_client(GOOGLE_CREDS_PATH)
-    spreadsheet_name, sheet_name, start_cell, sheet = get_or_configure_sheet(client)
 
-    values = sheet.get_all_values()
-    is_empty = all(all(cell == "" for cell in row) for row in values)
+    # === PILIH OUTPUT MODE ===
+    print("Pilih mode output data:")
+    print("1. Upload ke Google Sheets")
+    print("2. Simpan ke Excel (xlsx)")
+    mode = input("Pilihan (1/2): ").strip()
 
-    if not is_empty:
-        confirm_clear = input(f"\nSheet '{sheet_name}' sudah ada data. Clear semua dulu? (Y/n): ").strip().lower()
-        if confirm_clear in ("", "y", "yes"):
-            sheet.clear()
-            logging.info("Sheet dikosongkan.")
-            time.sleep(1)
-            clear_screen()
+    use_gsheet = (mode == "1")
+
+    if use_gsheet:
+        # === SETUP GOOGLE SHEETS ===
+        client = get_google_sheets_client(GOOGLE_CREDS_PATH)
+        spreadsheet_name, sheet_name, start_cell, sheet = get_or_configure_sheet(client)
+
+        values = sheet.get_all_values()
+        is_empty = all(all(cell == "" for cell in row) for row in values)
+
+        if not is_empty:
+            confirm_clear = input(
+                f"\nSheet '{sheet_name}' sudah ada data. Clear semua dulu? (Y/n): "
+            ).strip().lower()
+            if confirm_clear in ("", "y", "yes"):
+                sheet.clear()
+                logging.info("Sheet dikosongkan.")
+                time.sleep(1)
+                clear_screen()
+    else:
+        # === SETUP EXCEL OUTPUT ===
+        spreadsheet_name = None
+        sheet_name = None
+        start_cell = "A1"
+        sheet = None
+        excel_filename = input("\nMasukkan nama file Excel output (tanpa .xlsx): ").strip()
+        if not excel_filename:
+            excel_filename = "output"
+        excel_filename = excel_filename + ".xlsx"
+        clear_screen()
 
     # === PILIH SQL FILE ===
     global SQL_FILE
@@ -271,7 +315,7 @@ def main():
     # === OPSI EKSEKUSI SQL ===
     action = sql_menu()
     if action != "run":
-        sys.exit(0)  # safety, walau ga akan kepake
+        sys.exit(0)
 
     clear_screen()
 
@@ -298,15 +342,32 @@ def main():
     columns = [desc[0] for desc in curs.description]
     data = [columns] + [list(r) for r in rows]
 
-    logging.info(f"Uploading {len(rows)} baris ke Google Sheets...")
-    with tqdm(total=1, desc="Uploading", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
-        sheet.update(start_cell, data)
-        pbar.update(1)
+    if use_gsheet:
+        logging.info(f"Uploading {len(rows)} baris ke Google Sheets...")
+        with tqdm(total=1, desc="Uploading", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
+            sheet.update(start_cell, data)
+            pbar.update(1)
+        logging.info(
+            f"✅ Selesai menambahkan {len(rows)} baris ke {spreadsheet_name} "
+            f"pada sheet {sheet_name}, dimulai dari cell {start_cell}"
+        )
+    else:
+        logging.info(f"Menyimpan {len(rows)} baris ke file Excel: {excel_filename}")
+        try:
+            import openpyxl
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Data"
+            for row in data:
+                ws.append(row)
+            wb.save(excel_filename)
+            logging.info(f"✅ Data berhasil disimpan ke {excel_filename}")
+        except Exception as e:
+            logging.error(f"Gagal menyimpan ke Excel: {e}")
 
     curs.close()
     conn.close()
     clear_screen()
-    logging.info(f"✅ Selesai menambahkan {len(rows)} baris ke {spreadsheet_name} pada sheet {sheet_name}, dimulai dari cell {start_cell}")
 
 if __name__ == "__main__":
     main()
