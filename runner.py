@@ -254,6 +254,7 @@ def choose_spreadsheet_and_sheet(client):
     owner_email = env_dict.get("OWNER_EMAIL")
 
     simple_loader("Mengambil daftar Spreadsheet", 4)
+    clear_screen()
     spreadsheets = client.openall()
 
     
@@ -471,6 +472,7 @@ def main():
     print("2. Simpan ke Excel (xlsx)")
     mode = input("Pilihan (1/2): ").strip()
     use_gsheet = (mode == "1")
+    clear_screen()
 
     if use_gsheet:
         client = get_google_sheets_client(GOOGLE_CREDS_PATH)
@@ -532,7 +534,7 @@ def main():
         with tqdm(total=1, desc="Uploading", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
             sheet.update(start_cell, data)
             pbar.update(1)
-        logging.info(f"✅ Selesai menambahkan {len(rows)} baris ke {spreadsheet_name} pada sheet {sheet_name}, dimulai dari cell {start_cell}")
+        logging.info(f"[OK] Selesai menambahkan {len(rows)} baris ke {spreadsheet_name} pada sheet {sheet_name}, dimulai dari cell {start_cell}")
     else:
         logging.info(f"Menyimpan {len(rows)} baris ke file Excel: {excel_filename}")
         try:
@@ -542,7 +544,7 @@ def main():
             for row in data:
                 ws.append(row)
             wb.save(excel_filename)
-            logging.info(f"✅ Data berhasil disimpan ke {excel_filename}")
+            logging.info(f"[OK] Data berhasil disimpan ke {excel_filename}")
         except Exception as e:
             logging.error(f"Gagal menyimpan ke Excel: {e}")
 
