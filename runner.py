@@ -10,6 +10,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from getpass import getpass
 import requests
 from tqdm import tqdm
+import subprocess
 
 # === CONFIG PATH ===
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +41,7 @@ def display_intro():
  ░       ▒   ▒▒ ░  ░▒ ░ ▒░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░ ▒ ░░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░░   ░ ▒░
  ░ ░     ░   ▒     ░░   ░  ░  ░░ ░░ ░ ░ ▒    ░░   ░  ▒ ░░ ░ ░ ░ ░░ ░ ░ ▒     ░   ░ ░ 
              ░  ░   ░      ░  ░  ░    ░ ░     ░      ░    ░ ░        ░ ░           ░ 
-                                                        ░                      V.1.2.2
+                                                        ░                      V.1.3
 """
     print(logo)
     time.sleep(3)
@@ -117,6 +118,51 @@ def load_sql(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
 
+def sql_menu():
+    while True:
+        print("\nPilih opsi eksekusi SQL:")
+        print("1. Jalankan query langsung")
+        print("2. Preview query dan jalankan")
+        print("3. Edit file query kemudian jalankan")
+        choice = input("Pilihan (1/2/3): ").strip()
+
+        if choice == "1":
+            return "run"   # langsung run
+
+        elif choice == "2":
+            # tampilkan isi query
+            sql_preview = load_sql(SQL_FILE)
+            clear_screen()
+            print("=== ISI FILE QUERY ===\n")
+            print(sql_preview)
+            print("\nPilihan selanjutnya:")
+            print("1. Jalankan sekarang")
+            print("2. Kembali ke menu awal")
+            sub_choice = input("Pilihan (1/2): ").strip()
+            clear_screen()
+            if sub_choice == "1":
+                return "run"
+            else:
+                continue  # balik ke menu awal
+
+        elif choice == "3":
+            edit_sql_file(SQL_FILE)
+            clear_screen()
+            return "run"  # habis edit langsung jalanin
+
+        else:
+            print("[WARN] Pilihan tidak valid, coba lagi.\n")
+            continue
+
+def edit_sql_file(sql_file):
+    """Buka file SQL di editor teks sebelum dijalankan"""
+    editor = os.environ.get("EDITOR", "notepad" if os.name == "nt" else "nano")
+    print(f"[INFO] Membuka {sql_file} di editor ({editor})... Tutup Editor dan sql akan berjalan...")
+    try:
+        subprocess.call([editor, sql_file])
+    except Exception as e:
+        print(f"[ERROR] Gagal membuka editor: {e}")
+
 # === LOADING EFFECT ===
 def simple_loader(message, duration=3):
     for i in range(duration * 4):
@@ -133,7 +179,7 @@ JDBC_JAR = pick_file(
     save_as="jt400.jar"
 )
 GOOGLE_CREDS_PATH = pick_file(".json")
-SQL_FILE = pick_sql_file()
+#SQL_FILE = pick_sql_file()
 DB_URL = "jdbc:as400://10.10.1.1"
 DRIVER_CLASS = "com.ibm.as400.access.AS400JDBCDriver"
 
@@ -218,21 +264,36 @@ def main():
             time.sleep(1)
             clear_screen()
 
+    # === PILIH SQL FILE ===
+    global SQL_FILE
+    SQL_FILE = pick_sql_file()
+
+    # === OPSI EKSEKUSI SQL ===
+    action = sql_menu()
+    if action != "run":
+        sys.exit(0)  # safety, walau ga akan kepake
+
+    clear_screen()
+
+    # === LOGIN DB AS400 ===
     db_user = input("\nUser ID AS400: ")
     db_password = getpass("Password: ")
     clear_screen()
 
+    # === EKSEKUSI SQL ===
     sql = load_sql(SQL_FILE)
 
     simple_loader("Menghubungkan ke AS400", 4)
     conn = jaydebeapi.connect(DRIVER_CLASS, DB_URL, [db_user, db_password], JDBC_JAR)
     curs = conn.cursor()
+    clear_screen()
 
     logging.info("Menjalankan query...")
     with tqdm(total=1, desc="Fetching data", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
         curs.execute(sql)
         rows = curs.fetchall()
         pbar.update(1)
+    clear_screen()
 
     columns = [desc[0] for desc in curs.description]
     data = [columns] + [list(r) for r in rows]
