@@ -25,9 +25,6 @@ def resource_path(relative_path=""):
         base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
-# === GLOBAL INIT MESSAGES ===
-INIT_MESSAGES = []
-
 # === CONFIG PATH ===
 CURRENT_DIR = resource_path("")   # <-- jangan pakai __file__ langsung
 ENV_PATH = resource_path(".env")
@@ -80,7 +77,7 @@ def display_intro():
  ░       ▒   ▒▒ ░  ░▒ ░ ▒░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░ ▒ ░░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░░   ░ ▒░
  ░ ░     ░   ▒     ░░   ░  ░  ░░ ░░ ░ ░ ▒    ░░   ░  ▒ ░░ ░ ░ ░ ░░ ░ ░ ▒     ░   ░ ░ 
              ░  ░   ░      ░  ░  ░    ░ ░     ░      ░    ░ ░        ░ ░           ░ 
-                                                        ░                    V.1.3.3
+                                                        ░                    V.1.3.2
 """
     print(logo)
     time.sleep(3)
@@ -143,7 +140,8 @@ def pick_file(extension, download_url=None, save_as=None):
 
     if len(files) == 1:
         logging.info(f"Otomatis pakai {files[0]}")
-        INIT_MESSAGES.append(msg)
+        time.sleep(1)
+        clear_screen()
         return os.path.join(base_dir, files[0])
 
     print(f"\nBeberapa file {extension} ditemukan:")
@@ -178,7 +176,8 @@ def pick_sql_file():
 
     if len(files) == 1:
         logging.info(f"Otomatis pakai {files[0]}")
-        INIT_MESSAGES.append(msg)
+        time.sleep(1)
+        clear_screen()
         return os.path.join(CURRENT_DIR, files[0])
 
     print("\nBeberapa file SQL ditemukan:")
@@ -532,14 +531,6 @@ def get_or_configure_sheet(client):
 # === MAIN EXECUTION ===
 def main():
     display_intro()
-
-    # tampilkan pesan startup otomatis
-    if INIT_MESSAGES:
-        print("\n=== Konfigurasi Awal ===")
-        for msg in INIT_MESSAGES:
-            print(f"• {msg}")
-        print("")
-        time.sleep(2)
 
     while True:  # loop utama supaya bisa balik tanpa restart
         mode = output_menu()
