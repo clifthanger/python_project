@@ -15,18 +15,19 @@ import openpyxl
 import json
 import re
 import threading
+import random
 
 # === RESOURCE PATH (SUPAYA BISA .PY DAN .EXE) ===
 def resource_path(relative_path=""):
     """Ambil path absolut di folder kerja (support .py dan .exe)."""
-    if getattr(sys, 'frozen', False):  # kalau sudah di-build jadi exe
+    if getattr(sys, 'frozen', False):
         base_path = os.path.dirname(sys.executable)
     else:  # kalau masih .py
         base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
 # === CONFIG PATH ===
-CURRENT_DIR = resource_path("")   # <-- jangan pakai __file__ langsung
+CURRENT_DIR = resource_path("")
 ENV_PATH = resource_path(".env")
 
 # === LOAD ENV ===
@@ -65,8 +66,37 @@ logging.basicConfig(
     format="%(levelname)s: %(message)s"
 )
 
-# === INTRO LOGO ===
+# === ANSI WARNA ===
+RESET = "\033[0m"
+GREEN = "\033[92m"
+
+def matrix_rain(duration=3, width=80, height=20, delay=0.05):
+    """Animasi matrix rain effect"""
+    clear_screen()
+    columns = [0] * width
+    end_time = time.time() + duration
+
+    while time.time() < end_time:
+        line = ""
+        for i in range(width):
+            if columns[i] == 0:
+                if random.random() > 0.98:  # peluang memulai hujan
+                    columns[i] = random.randint(3, height)
+            if columns[i] > 0:
+                line += GREEN + random.choice("01") + RESET
+                columns[i] -= 1
+            else:
+                line += " "
+        print(line)
+        sys.stdout.flush()
+        time.sleep(delay)
+    clear_screen()
+
 def display_intro():
+    # === Matrix Rain dulu ===
+    matrix_rain(duration=3, width=80, height=20, delay=0.05)
+
+    # === Lalu Logo ===
     logo = r"""
   █████▒▄▄▄       ██▀███   ██░ ██  ▒█████   ██▀███   ██▓▒███████▒ ▒█████   ███▄    █ 
 ▓██   ▒▒████▄    ▓██ ▒ ██▒▓██░ ██▒▒██▒  ██▒▓██ ▒ ██▒▓██▒▒ ▒ ▒ ▄▀░▒██▒  ██▒ ██ ▀█   █ 
@@ -77,9 +107,9 @@ def display_intro():
  ░       ▒   ▒▒ ░  ░▒ ░ ▒░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░ ▒ ░░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░░   ░ ▒░
  ░ ░     ░   ▒     ░░   ░  ░  ░░ ░░ ░ ░ ▒    ░░   ░  ▒ ░░ ░ ░ ░ ░░ ░ ░ ▒     ░   ░ ░ 
              ░  ░   ░      ░  ░  ░    ░ ░     ░      ░    ░ ░        ░ ░           ░ 
-                                                        ░                    V.1.3.3
+                                                        ░                    V.1.3.4
 """
-    print(logo)
+    print(GREEN + logo + RESET)
     time.sleep(3)
     clear_screen()
 
@@ -99,6 +129,7 @@ def get_choice(options, prompt="Pilih opsi: "):
             if 0 <= idx < len(options):
                 return idx
             elif idx == len(options):
+                display_intro()
                 return None
         except ValueError:
             pass
@@ -256,7 +287,38 @@ JDBC_JAR = pick_file(
     download_url="https://drive.google.com/uc?export=download&id=1ZkPcQB81FocitiQGiYFA21yA9bfGk6Ab",
     save_as="jt400.jar"
 )
-GOOGLE_CREDS_PATH = pick_file(".json")
+
+# --- cek file JSON kredensial Google Sheets ---
+json_files = [f for f in os.listdir(CURRENT_DIR) if f.endswith(".json")]
+
+if not json_files:
+    dummy_path = os.path.join(CURRENT_DIR, "dummy.json")
+    with open(dummy_path, "w", encoding="utf-8") as f:
+        json.dump({"warning": "File kredensial Google Sheets tidak ditemukan"}, f, indent=2)
+    GOOGLE_CREDS_PATH = dummy_path
+    print(f"[X] File kredensial Google Sheets (.json) tidak ada! Dibuat {os.path.basename(dummy_path)}")
+
+elif len(json_files) == 1:
+    GOOGLE_CREDS_PATH = os.path.join(CURRENT_DIR, json_files[0])
+    print(f"Otomatis pakai {os.path.basename(GOOGLE_CREDS_PATH)} sebagai kredensial Google Sheets")
+
+else:
+    print("[!] Ditemukan lebih dari satu file JSON kredensial:")
+    for i, f in enumerate(json_files, 1):
+        print(f" {i}. {f}")
+    
+    while True:
+        try:
+            choice = int(input("Pilih nomor file JSON yang mau dipakai: "))
+            if 1 <= choice <= len(json_files):
+                GOOGLE_CREDS_PATH = os.path.join(CURRENT_DIR, json_files[choice-1])
+                print(f"Dipilih {os.path.basename(GOOGLE_CREDS_PATH)} sebagai kredensial Google Sheets")
+                break
+            else:
+                print("Nomor tidak valid, coba lagi.")
+        except ValueError:
+            print("Input harus angka.")
+
 DB_URL = "jdbc:as400://10.10.1.1"
 DRIVER_CLASS = "com.ibm.as400.access.AS400JDBCDriver"
 
@@ -289,10 +351,26 @@ def append_env_var(key, value):
     write_env_dict(env)
     
 def get_google_sheets_client(json_cred_file):
-    simple_loader("Membaca kredensial Google Sheets", 2)
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(json_cred_file, scope)
-    return gspread.authorize(creds)
+    """Bikin client Google Sheets dari file JSON"""
+    scope = ["https://spreadsheets.google.com/feeds",
+             "https://www.googleapis.com/auth/drive"]
+
+    try:
+        creds = ServiceAccountCredentials.from_json_keyfile_name(json_cred_file, scope)
+        client = gspread.authorize(creds)
+        print("Membaca kredensial Google Sheets [OK]")
+        return client
+
+    except ValueError as e:
+        print("[X] File kredensial Google Sheets tidak valid atau expired!")
+        print("   Tolong periksa kembali file credentials Anda.")
+        input("\nTekan Enter untuk kembali ke menu...")
+        return None
+
+    except Exception as e:
+        print(f"[X] Gagal membaca kredensial Google Sheets: {e}")
+        input("\nTekan Enter untuk kembali ke menu...")
+        return None
 
 def choose_spreadsheet_and_sheet(client):
     env_dict = read_env_dict()
@@ -530,22 +608,38 @@ def get_or_configure_sheet(client):
 
 # === MAIN EXECUTION ===
 def main():
+    time.sleep(2)
     display_intro()
 
     while True:  # loop utama supaya bisa balik tanpa restart
         mode = output_menu()
         if mode is None:  # user pilih Kembali
             logging.info("Keluar dari program.")
-            #clear_screen()
             break
 
         use_gsheet = (mode == "1")
         clear_screen()
 
         if use_gsheet:
+            if os.path.basename(GOOGLE_CREDS_PATH) == "dummy.json":
+                logging.warning(
+                    "⚠️  Fitur Upload ke Google Sheets tidak bisa dijalankan.\n"
+                    "Segera download file kredensial Google Sheets anda (.json)."
+                )
+                input("\nTekan Enter untuk kembali ke menu...")
+                clear_screen()  
+                continue
+
+            # kalau ada kredensial asli, jalan normal
             client = get_google_sheets_client(GOOGLE_CREDS_PATH)
+            if client is None:
+                # gagal baca kredensial → balik ke menu utama
+                #input("\nTekan Enter untuk kembali ke menu...")
+                clear_screen()
+                continue  
+
             result = get_or_configure_sheet(client)
-            if result is None:   # user balik di dalam menu sheet
+            if result is None:
                 continue
             spreadsheet_name, sheet_name, start_cell, sheet = result
 
