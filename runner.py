@@ -107,7 +107,7 @@ def display_intro():
  ░       ▒   ▒▒ ░  ░▒ ░ ▒░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░ ▒ ░░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░░   ░ ▒░
  ░ ░     ░   ▒     ░░   ░  ░  ░░ ░░ ░ ░ ▒    ░░   ░  ▒ ░░ ░ ░ ░ ░░ ░ ░ ▒     ░   ░ ░ 
              ░  ░   ░      ░  ░  ░    ░ ░     ░      ░    ░ ░        ░ ░           ░ 
-                                                        ░                    V.1.3.4
+                                                        ░                    V.1.4.0
 """
     print(GREEN + logo + RESET)
     time.sleep(3)
@@ -247,8 +247,26 @@ def sql_menu():
                 db_password = getpass("Password: ")
                 conn = jaydebeapi.connect(DRIVER_CLASS, DB_URL, [db_user, db_password], JDBC_JAR)
                 curs = conn.cursor()
-                curs.execute(sql_preview)
-                rows = curs.fetchmany(10)  # ambil 10 baris pertama
+
+                # --- deteksi placeholder ? dan baca label dari komentar ---
+                pattern = re.compile(r"\?(?:\s*/\*\s*(.*?)\s*\*/)?", re.DOTALL)
+                matches = pattern.findall(sql_preview)
+                params = []
+                if matches:
+                    print(f"\n[INFO] Ditemukan {len(matches)} parameter input dalam SQL.\n")
+                    for i, label in enumerate(matches, 1):
+                        label = label.strip() if label else f"parameter #{i}"
+                        val = input(f"\033[92mMasukkan nilai untuk {label}:\033[0m ").strip()
+                        params.append(val)
+
+                # Jalankan query preview
+                if params:
+                    curs.execute(sql_preview, params)
+                else:
+                    curs.execute(sql_preview)
+
+                rows = curs.fetchmany(10)
+
                 columns = [desc[0] for desc in curs.description]
 
                 print("\n".join([" | ".join(columns)] + [" | ".join(map(str, r)) for r in rows]))
@@ -691,12 +709,33 @@ def main():
         clear_screen()
 
         try:
+            # --- deteksi placeholder ? dan baca label dari komentar ---
+            pattern = re.compile(r"\?(?:\s*/\*\s*(.*?)\s*\*/)?", re.DOTALL)
+            matches = pattern.findall(sql)
+
+            params = []
+            if matches:
+                print(f"\n[INFO] Ditemukan {len(matches)} parameter input dalam SQL.\n")
+                for i, label in enumerate(matches, 1):
+                    label = label.strip() if label else f"parameter #{i}"
+                    val = input(f"\033[92mMasukkan nilai untuk {label}:\033[0m ").strip()
+                    params.append(val)
+
+                # Gantikan langsung di teks SQL (bukan parameterized)
+                for val in params:
+                    if val.isidentifier():  # misal AKHIR_BULAN_LALU, AWAL_BULAN_LALU
+                        sql = sql.replace("?", val, 1)
+                    else:
+                        safe_val = val.replace("'", "''")
+                        sql = sql.replace("?", f"'{safe_val}'", 1)
+
             logging.info("Menjalankan query...")
             with tqdm(total=1, desc="Fetching data", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
-                curs.execute(sql)
+                curs.execute(sql)  # tanpa params
                 rows = curs.fetchall()
                 pbar.update(1)
             clear_screen()
+
         except Exception as e:
             logging.error("\n=== Gagal menjalankan query! ===")
             logging.error(f"Pesan error: {str(e)[:500]}")  # tampil 500 char max biar ga kepanjangan
