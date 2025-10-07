@@ -3,6 +3,7 @@ import sys
 import subprocess
 import requests
 import json
+import importlib.util
 
 # === CONFIG ===
 MAIN_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/main/main.py"
@@ -10,13 +11,73 @@ RUNNER_RAW_URL = "https://raw.githubusercontent.com/clifthanger/python_project/m
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 RUNNER_FILE = os.path.join(CURRENT_DIR, "runner.py")
+REQ_FILE = os.path.join(CURRENT_DIR, "requirements.txt")
 
+
+# === AUTO INSTALL DEPENDENCIES ===
+def ensure_requirements():
+    """Baca requirements.txt lalu install modul yang belum ada (auto pip + clean output)"""
+    if not os.path.exists(REQ_FILE):
+        print("[WARN] requirements.txt tidak ditemukan — lewati pengecekan paket.")
+        return
+
+    print("[INFO] Mengecek dependensi Python...")
+
+    # Baca daftar paket dari file
+    with open(REQ_FILE, "r", encoding="utf-8") as f:
+        required_packages = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
+    # mapping pip_name -> module_name (untuk import check)
+    name_map = {
+        "JayDeBeApi": "jaydebeapi",
+        "python-dotenv": "dotenv",
+        "oauth2client": "oauth2client",
+        "gspread": "gspread",
+        "tqdm": "tqdm",
+        "openpyxl": "openpyxl",
+    }
+
+    missing_packages = []
+    for pkg in required_packages:
+        pkg_clean = pkg.split("==")[0].strip()
+        module_name = name_map.get(pkg_clean, pkg_clean)
+        if not importlib.util.find_spec(module_name):
+            missing_packages.append(pkg_clean)
+
+    if not missing_packages:
+        print("[INFO] Semua dependensi sudah terinstall.")
+        return
+
+    print("[INFO] Paket yang belum ada:")
+    for p in missing_packages:
+        print(f"   - {p}")
+
+    # --- pastikan pip tersedia ---
+    try:
+        import pip  # noqa
+    except ImportError:
+        print("[INFO] Pip belum ada, menginstall dengan ensurepip...")
+        subprocess.check_call([sys.executable, "-m", "ensurepip", "--upgrade"])
+
+    print("\n[INFO] Menginstall paket yang hilang...\n")
+
+    try:
+        for pkg in missing_packages:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "--quiet", pkg],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+            )
+            print(f"   [+] {pkg} terinstall.")
+    except subprocess.CalledProcessError as e:
+        print(f"[ERROR] Gagal menginstall {pkg}: {e}")
+        sys.exit(1)
+
+    print("\n[INFO] Semua paket sudah terinstall. Restarting program...\n")
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 def ensure_json_exists():
-    """Pastikan ada minimal satu file .json di root. 
-       Kalau tidak ada → buat dummy.json lalu exit.
-       Kalau hanya dummy.json → exit juga.
-    """
+    """Pastikan ada minimal satu file .json di root."""
     json_files = [f for f in os.listdir(CURRENT_DIR) if f.endswith(".json")]
 
     if not json_files:
@@ -31,15 +92,14 @@ def ensure_json_exists():
                 json.dump(dummy_content, f, indent=4, ensure_ascii=False)
             print(f"[INFO] Dummy file dibuat: {dummy_file}")
         finally:
-            sys.exit(1)  # langsung stop program
+            sys.exit(1)
 
-    # Kalau cuma ada dummy.json doang
     if len(json_files) == 1 and json_files[0] == "dummy.json":
         print("[WARN] Hanya ditemukan dummy.json. Harap ganti dengan file credentials asli!")
         sys.exit(1)
 
-    # Kalau ada file json asli selain dummy.json → lanjut jalan
     print(f"[INFO] Ditemukan file JSON: {json_files}")
+
 
 def download_runner():
     """Download runner.py dari GitHub RAW"""
@@ -89,7 +149,8 @@ def run_runner():
 
 
 if __name__ == "__main__":
-    ensure_json_exists()  # <- cek ada json atau bikin dummy
+    ensure_requirements()   # <--- Tambahan di sini
+    ensure_json_exists()
 
     if not os.path.exists(RUNNER_FILE):
         download_runner()
