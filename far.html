@@ -1,0 +1,114 @@
+<!-- FAR REMOTE HTML (tidak pakai <html>, <head>, <body>) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/clifthanger/python_project/style.css">
+
+<div class="carousel-wrapper">
+    <button class="nav-btn prev">⟨</button>
+    <div class="carousel-container">
+        <div class="carousel-track">
+
+            <!-- CARD 1 -->
+            <div class="card">
+                <h3>Text Based</h3>
+                <select id="tdk-type" onchange="updateDynamicPlaceholder(this, 'tdk-value')">
+                    <option value="tabungan" data-ph="Masukkan No Rekening Tabungan">Saldo Tabungan</option>
+                    <option value="tabungan_nama" data-ph="Masukkan Nama untuk Tabungan">Saldo Tabungan (by Nama)</option>
+                    <option value="deposito" data-ph="Masukkan No Rekening Deposito">Deposito</option>
+                    <option value="deposito_nama" data-ph="Masukkan Nama untuk Deposito">Deposito (by Nama)</option>
+                    <option value="kredit" data-ph="Masukkan No Rekening Kredit / SPK">Kredit</option>
+                    <option value="kredit_nama" data-ph="Masukkan Nama untuk Kredit">Kredit (by Nama)</option>
+                    <option value="pelunasan" data-ph="Masukkan No SPK">Hitung Pelunasan</option>
+                    <option value="cif" data-ph="Masukkan Nama untuk CIF">CIF</option>
+                    <option value="perol" data-ph="Masukkan value A">Hitung Perolehan MD</option>
+                    <option value="aset" data-ph="Masukkan tanggal">Aset MD</option>
+                </select>
+
+                <input id="tdk-value" placeholder="Masukkan No Rekening Tabungan" />
+                <button onclick="fetchTDK()">Fetch TDK</button>
+
+                <div id="tdk-container" class="result-box">
+                    <p class="placeholder">Belum ada data...</p>
+                </div>
+            </div>
+
+            <!-- CARD 2 -->
+            <div class="card">
+                <h3>NPL</h3>
+
+                <select id="npl-type" onchange="updateDynamicPlaceholder(this, 'npl-ktrbrco')">
+                    <option value="kantor" data-ph="Masukkan kode kantor (SMB)">NPL per Kantor</option>
+                    <option value="cabang" data-ph="Masukkan kode cabang (1182)">NPL per Cabang</option>
+                    <option value="wilayah" data-ph="Masukkan kode wilayah (8010)">NPL per Wilayah</option>
+                </select>
+
+                <input id="npl-ktrbrco" placeholder="Masukkan kode kantor (SMB)">
+                <button onclick="fetchNPL()">Fetch NPL Image</button>
+
+                <img id="npl-img">
+                <div id="npl-result" class="result-box">
+                    <p class="placeholder">Belum ada data...</p>
+                </div>
+            </div>
+
+            <!-- CARD 3 -->
+            <div class="card">
+                <h3>NPL Detail</h3>
+
+                <select id="npldetail-type" onchange="updateDynamicPlaceholder(this, 'npldetail-ktrbrco')">
+                    <option value="npl_kantor" data-ph="Masukkan kode kantor (SMB)">NPL per Kantor Detail</option>
+                    <option value="npl_cabang" data-ph="Masukkan kode cabang (1182)">NPL per Cabang Detail</option>
+                    <option value="npl_wilayah" data-ph="Masukkan kode wilayah (8010)">NPL per Wilayah Detail</option>
+                </select>
+
+                <input id="npldetail-ktrbrco" placeholder="Masukkan kode kantor (SMB)">
+                <button onclick="fetchNPLDetail()">Fetch NPL Detail</button>
+
+                <img id="npldetail-img">
+                <div id="npldetail-result" class="result-box">
+                    <p class="placeholder">Belum ada data...</p>
+                </div>
+            </div>
+
+            <!-- CARD 4 -->
+            <div class="card">
+                <h3>History Rekening (Excel)</h3>
+
+                <input id="hist-account" placeholder="No Rekening">
+                <input id="hist-start" placeholder="Tanggal Mulai (yyyymmdd)" onclick="openCalendar('hist-start')">
+                <input id="hist-end" placeholder="Tanggal Akhir (yyyymmdd)" onclick="openCalendar('hist-end')">
+
+                <button onclick="fetchHistory()">Download Excel</button>
+
+                <div id="hist-result" class="result-box">
+                    <p class="placeholder">Belum ada proses...</p>
+                </div>
+            </div>
+
+            <!-- CARD 5 -->
+            <div class="card">
+                <h3>Push ke Google Sheet</h3>
+                <button onclick="pushGSheet()">Push Data</button>
+                <pre id="gsheet-result"></pre>
+            </div>
+
+        </div>
+    </div>
+    <button class="nav-btn next">⟩</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/clifthanger/python_project/far.js"></script>
+
+<div id="img-lightbox">
+    <span class="close-btn" onclick="closeLightbox()">×</span>
+    <img id="lightbox-img" src="">
+</div>
+
+<input 
+    type="date" 
+    id="hidden-calendar"
+    style="
+        opacity:0;
+        width:1px;
+        height:1px;
+        position:absolute;
+        pointer-events:none;
+    ">
