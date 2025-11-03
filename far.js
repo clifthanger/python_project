@@ -107,7 +107,10 @@
     
       const url = `${API_BASE}/tdk/${type}_${val}`;
       try {
-        const res = await fetch(url, { headers: { "x-api-key": API_KEY } });
+        const res = await fetch(url, {
+    headers: { "x-api-key": API_KEY },
+    mode: "cors" // pastikan browser tahu ini request lintas origin
+});
         const text = await res.text();
         if (!res.ok) throw new Error(text);
     
