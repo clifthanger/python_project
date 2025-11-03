@@ -5,7 +5,20 @@
         const cards = document.querySelectorAll(".card");
         const container = document.querySelector(".carousel-container");
         let index = 0;
-    
+
+		async function safeFetch(url, opts = {}) {
+		    opts.headers = opts.headers || {};
+		    // fallback: kalau running di file://, kirim token sebagai query param
+		    if (location.protocol === "file:") {
+		        const separator = url.includes("?") ? "&" : "?";
+		        url += `${separator}x_api_key=${API_KEY}`;
+		    } else {
+		        opts.headers["x-api-key"] = API_KEY;
+		        opts.mode = opts.mode || "cors";
+		    }
+		    return fetch(url, opts);
+		}
+
         function updateCarousel() {
           track.style.transform = `translateX(-${index * 100}%)`;
           container.style.height = cards[index].offsetHeight + "px";
@@ -107,10 +120,7 @@
     
       const url = `${API_BASE}/tdk/${type}_${val}`;
       try {
-        const res = await fetch(url, {
-    headers: { "x-api-key": API_KEY },
-    mode: "cors" // pastikan browser tahu ini request lintas origin
-});
+        const res = await safeFetch(url);
         const text = await res.text();
         if (!res.ok) throw new Error(text);
     
@@ -164,7 +174,7 @@
             box.innerHTML = "<p>Loading...</p>";
 
             try {
-                const res = await fetch(`${API_BASE}/npl/${type}/${ktr}`, { headers: { "x-api-key": API_KEY } });
+                const res = await safeFetch(url);
                 if (!res.ok) throw new Error(await res.text());
 
                 const blob = await res.blob();
@@ -185,7 +195,7 @@
             box.innerHTML = "<p>Loading...</p>";
 
             try {
-                const res = await fetch(`${API_BASE}/npldetail/${type}/${ktr}`, { headers: { "x-api-key": API_KEY } });
+                const res = await safeFetch(url);
                 if (!res.ok) throw new Error(await res.text());
 
                 const blob = await res.blob();
@@ -209,7 +219,7 @@
 
             try {
                 const url = `${API_BASE}/history?account=${acc}&start_date=${start}&end_date=${end}`;
-                const res = await fetch(url, { headers: { "x-api-key": API_KEY } });
+                const res = await safeFetch(url);
 
                 if (!res.ok) throw new Error(await res.text());
 
@@ -229,10 +239,7 @@
           const resBox = document.getElementById("gsheet-result");
           resBox.textContent = "Mengirim ke Google Sheet...";
           try {
-            const res = await fetch(`${API_BASE}/push_gsheet`, {
-              method: "POST",
-              headers: { "x-api-key": API_KEY },
-            });
+            const res = await safeFetch(url);
             const text = await res.text();
             if (!res.ok) throw new Error(text);
             const data = JSON.parse(text);
