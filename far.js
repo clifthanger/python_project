@@ -1,5 +1,5 @@
         const API_BASE = "http://127.0.0.1:6969";
-        const API_KEY = "PUB_FARHORIZONS";
+        const API_KEY = "PUB_FARHORIZON";
     
         const track = document.querySelector(".carousel-track");
         const cards = document.querySelectorAll(".card");
