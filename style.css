@@ -1,207 +1,195 @@
-/* === BASE === */
+
 body {
     font-family: "Segoe UI", Arial, sans-serif;
-    background-image: url('https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3b3JrN2k3cG5odWlvaWluaXN2ZGU4dG93ZWI3bnBhbG9mM3U5dm9layZlcD12MV9naWZzX3NlYXJjaCZjdT1n/3o7aCRBaUv3Sng0rTy/giphy.gif');
-    background-size: cover;           /* perubahan penting */
-    background-position: center;
-    background-repeat: no-repeat;
-
+    background-image: url('https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3b3JrN2k3cG5odWlvaWluaXN2ZGU4dG93ZWI3bnBhbG9mM3U5dm9layZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7aCRBaUv3Sng0rTy/giphy.gif');
+    background-size: 100% 100%;
+    background-position: center;   /* posisikan di tengah */
+    background-repeat: no-repeat;  /* jangan diulang */
     color: #eee;
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    padding: 20px;                    /* sebelumnya 40px: kebesaran di HP */
+    padding: 40px;
+    overflow-x: hidden;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
-/* Input & Select */
-input, select {
-    min-width: 100px;
-    max-width: 100%;
-    display: inline-block;
-    box-sizing: content-box;
-}
-
-/* Result Box */
-.result-box {
-    background: #000;
-    color: #0f0;
-    padding: 12px;
-    border-radius: 8px;
-    min-height: 120px;
-    max-height: 300px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    font-family: monospace;
-    white-space: pre-wrap;
-    line-height: 1.4;
-    box-sizing: border-box;
-}
-
-/* Scrollbars */
-.result-box::-webkit-scrollbar { width: 7px; }
-.result-box::-webkit-scrollbar-track { background: #111; }
-.result-box::-webkit-scrollbar-thumb { background: #0f0; border-radius: 8px; }
-
-/* Carousel Wrapper */
-.carousel-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-}
-
-/* === RESPONSIVE CONTAINER === */
-.carousel-container {
-    position: relative;
-    width: 100%;                /* FULL WIDTH HP */
-    max-width: 420px;           /* tetap rapih di desktop */
-    overflow: hidden;
-    border-radius: 12px;
-    box-shadow: 0 0 15px #8B0000aa;
-    background: #222;
-    transition: height 0.3s ease;
-}
-
-/* Track */
-.carousel-track {
-    display: flex;
-    transition: transform 0.6s ease-in-out;
-    width: 100%;
-}
-
-/* Card */
-.card {
-    flex: 0 0 100%;
-    box-sizing: border-box;
-    padding: 18px;
-    height: auto;
-    transition: height 0.3s ease;
-}
-
-/* FORM ELEMENTS (lebih gede di HP, enak di jempol) */
-input, select, button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: none;
-    font-size: 15px;
-    box-sizing: border-box;
-}
-
-/* Button */
-button {
-    background: #8B0000;
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-}
-button:hover { background: #B22222; }
-
-/* Image */
-img {
-    max-width: 100%;
-    border-radius: 10px;
-    margin-top: 10px;
-}
-
-/* Pre */
-pre {
-    background: #000;
-    color: #0f0;
-    padding: 10px;
-    border-radius: 8px;
-    max-height: 300px;
-    overflow: auto;
-}
-
-/* === NAVIGATION BUTTONS === */
-.nav-btn {
-    background: #8B0000;
-    border: none;
-    color: #000;
-    font-size: 24px;
-    font-weight: bold;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    cursor: pointer;
-    opacity: 0.85;
-    transition: 0.2s;
-    z-index: 10;
-}
-
-.nav-btn:hover { opacity: 1; background: #B22222; }
-.prev { margin-right: 10px; }
-.next { margin-left: 10px; }
-
-/* === LIGHTBOX === */
-#img-lightbox {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(6px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-#img-lightbox img {
-    max-width: 92vw;
-    max-height: 92vh;
-    border-radius: 12px;
-    box-shadow: 0 0 20px #0ff8;
-}
-#img-lightbox .close-btn {
-    position: absolute;
-    top: 20px;
-    right: 28px;
-    font-size: 40px;
-    color: #fff;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-/* ====================================
-   ✅ MOBILE RESPONSIVE BREAKPOINT
-==================================== */
-@media (max-width: 600px) {
-
-    body {
-        padding: 12px !important;
+    
+    input, select {
+      min-width: 100px;
+      max-width: 100%;
+      display: inline-block;
+      box-sizing: content-box;
     }
-
-    .carousel-container {
-        width: 100%;
-        border-radius: 10px;
+    
+    .result-box {
+      background: #000;
+      color: #0f0;
+      padding: 12px;
+      border-radius: 8px;
+      min-height: 120px;
+      max-height: 300px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      font-family: monospace;
+      white-space: pre-wrap; /* ubah dari pre-line ke pre-wrap biar tinggi teks dihitung benar */
+      line-height: 1.4;
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: #0f0 #111;
     }
-
-    .card {
-        padding: 16px;
+    
+    /* Scrollbar Chrome/Edge */
+    .result-box::-webkit-scrollbar {
+      width: 8px;
     }
-
-    input, select, button {
-        font-size: 16px;
-        padding: 15px;
+    .result-box::-webkit-scrollbar-track {
+      background: #111;
+      border-radius: 8px;
     }
-
-    .nav-btn {
-        font-size: 20px;
-        width: 38px;
-        height: 38px;
+    .result-box::-webkit-scrollbar-thumb {
+      background-color: #0f0;
+      border-radius: 8px;
     }
-
-    h3 {
-        font-size: 17px;
-        margin-bottom: 10px;
+    .result-box::-webkit-scrollbar-thumb:hover {
+      background-color: #6f6;
     }
-}
+    
+        h1 {
+          color: #0ff;
+          margin-bottom: 20px;
+        }
+    
+        /* === Carousel Container === */
+        .carousel-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+        }
+    
+        .carousel-container {
+          position: relative;
+          width: 420px;
+          max-width: 90vw;
+          overflow: hidden;
+          border-radius: 12px;
+          box-shadow: 0 0 15px #8B0000aa;
+          background: #222;
+          transition: height 0.3s ease;
+        }
+    
+        .carousel-track {
+          display: flex;
+          transition: transform 0.6s ease-in-out;
+          width: 100%;
+        }
+    
+        .card {
+          flex: 0 0 100%;
+          box-sizing: border-box;
+          padding: 20px;
+          height: auto;
+    	  transition: height 0.3s ease;
+        }
+    
+        input, select, button {
+          width: 100%;
+          padding: 14px;
+          margin-top: 5px;
+          margin-bottom: 10px;
+          border-radius: 6px;
+          border: none;
+          font-size: 14px;
+        }
+    
+        button {
+          background: #8B0000;
+          color: #000;
+          font-weight: bold;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+    
+        button:hover {
+          background:  #B22222;
+        }
+    
+        img {
+          max-width: 100%;
+          border-radius: 10px;
+          margin-top: 10px;
+        }
+    
+        pre {
+          background: #000;
+          color: #0f0;
+          padding: 10px;
+          border-radius: 8px;
+          max-height: 300px;
+          overflow: auto;
+        }
+    
+        /* === Navigation Buttons (posisi luar container) === */
+        .nav-btn {
+          background: #8B0000;
+          border: none;
+          color: #000;
+          font-size: 22px;
+          font-weight: bold;
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          cursor: pointer;
+          opacity: 0.8;
+          transition: 0.2s;
+          z-index: 10;
+          flex-shrink: 0;
+        }
+    
+        .nav-btn:hover {
+          opacity: 1;
+          background: #B22222;
+        }
+    
+        .prev {
+          margin-right: 10px;
+        }
+    
+        .next {
+          margin-left: 10px;
+        }
+		
+		/* === LIGHTBOX === */
+		#img-lightbox {
+		  position: fixed;
+		  top: 0;
+		  left: 0;
+		  width: 100vw;
+		  height: 100vh;
+		  background: rgba(0,0,0,0.75);
+		  backdrop-filter: blur(6px);
+		  display: none;
+		  align-items: center;
+		  justify-content: center;
+		  z-index: 9999;
+		}
+
+		#img-lightbox img {
+		  max-width: 90vw;
+		  max-height: 90vh;
+		  border-radius: 12px;
+		  box-shadow: 0 0 20px #0ff8;
+		}
+
+		#img-lightbox .close-btn {
+		  position: absolute;
+		  top: 20px;
+		  right: 30px;
+		  font-size: 40px;
+		  color: #fff;
+		  cursor: pointer;
+		  font-weight: bold;
+		  text-shadow: 0 0 10px #000;
+		}
